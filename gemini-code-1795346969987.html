@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>棒人間育成</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap">
+<style>
+:root{--paper:#e9f1f7;--grid:#c9d9e6;--ink:#14213d;--panel:#fff;--mute:#5b6b80;--line:#14213d;
+--c-hp:#e8505b;--c-str:#f28c28;--c-int:#3a86ff;--c-mot:#12b5a6;--c-psy:#9b5de5;--c-rel:#ff7aa8;--c-hun:#d9923b;--gold:#f2b705;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#101a28;--grid:#1d2c40;--ink:#e8eef7;--panel:#1a2638;--mute:#93a4ba;--line:#e8eef7;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#101a28;--grid:#1d2c40;--ink:#e8eef7;--panel:#1a2638;--mute:#93a4ba;--line:#e8eef7;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;color:var(--ink);font-family:"Yomogi","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;font-size:16px;line-height:1.5}
+main{max-width:480px;margin:0 auto;padding:14px 14px 28px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:8px}
+h1{font-size:22px;margin:0}
+.sub{color:var(--mute);font-size:14px}
+.chip{display:inline-block;background:var(--gold);color:#14213d;border-radius:99px;padding:1px 12px;font-size:14px}
+.stage{position:relative;margin:10px 0;background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:6px 6px 10px;text-align:center}
+.stage svg{width:62%;max-width:250px;height:auto;animation:bob 2.6s ease-in-out infinite}
+.stage.pop svg{animation:pop .7s ease-out}
+.stage.dead svg{animation:none;filter:grayscale(1);transform:rotate(-8deg);opacity:.8}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.stage svg,.stage.pop svg{animation:none}}
+.form{font-size:20px;margin:0}
+.bars{display:grid;gap:6px;margin:12px 0}
+.bar{display:grid;grid-template-columns:52px 1fr 54px;align-items:center;gap:8px;font-size:15px}
+.bar i{display:block;height:12px;border:2px solid var(--line);border-radius:99px;background:var(--panel);overflow:hidden;position:relative}
+.bar i::after{content:"";position:absolute;inset:0;width:var(--w);background:var(--c);transition:width .4s}
+.bar b{text-align:right;font-weight:400}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button{font:inherit;color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:10px 8px;min-height:56px;cursor:pointer;box-shadow:0 3px 0 var(--line);line-height:1.25}
+button:active{transform:translateY(3px);box-shadow:none}
+button:focus-visible{outline:3px solid var(--c-int);outline-offset:2px}
+button small{display:block;color:var(--mute);font-size:12px}
+.log{margin:14px 0 0;padding:0;list-style:none;font-size:15px}
+.log li{padding:3px 0;border-bottom:1px dashed var(--mute)}
+.log li:first-child{font-weight:700}
+.big{width:100%;background:var(--gold);color:#14213d;font-size:18px}
+details{margin-top:14px;font-size:14px;color:var(--mute)}
+summary{cursor:pointer;color:var(--ink)}
+details p{margin:6px 0}
+.hide{display:none}
+main.bk>*:not(#book){display:none!important}
+main:not(.bk) #book{display:none}
+.ico{min-width:48px;min-height:48px;padding:6px;display:grid;place-items:center}
+.ico svg{width:26px;height:26px}
+.bkhead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.bkhead h2{margin:0;font-size:22px}
+.bkhead button{min-height:44px;padding:6px 12px;font-size:14px}
+.dex{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:8px 6px;text-align:center;font-size:14px}
+.card svg{width:68%;height:auto}
+.card.lock svg{filter:brightness(0) invert(.55)}
+.ach{display:flex;gap:10px;align-items:center;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:8px 10px;margin-top:8px}
+.ach.lock{opacity:.6}
+.ach .m{font-size:22px;width:32px;text-align:center}
+.ach b{font-weight:400;display:block}
+.ach small{color:var(--mute);font-size:13px}
+.bubble{position:relative;display:inline-block;max-width:92%;min-height:40px;margin:6px 0 12px;padding:8px 14px;background:var(--paper);border:2px solid var(--line);border-radius:16px;font-size:16px;line-height:1.4}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-9px;width:14px;height:14px;background:var(--paper);border-right:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+.dl{font-size:11px;margin-left:2px;color:var(--mute)}
+.hn{display:block;margin-top:4px;color:var(--mute);font-size:12px;line-height:1.35}
+.hbtns{display:flex;gap:8px}
+.will{margin:10px 0;padding:12px 14px;background:var(--panel);border:2px dashed var(--line);border-radius:14px;text-align:center;line-height:1.6}
+#helpBtn{font-size:22px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.tabs button{min-height:40px;padding:4px 12px;font-size:14px;border-radius:12px;box-shadow:0 2px 0 var(--line)}
+.tabs button.on{background:var(--gold);color:#14213d}
+#rsYes{background:var(--c-hp);color:#fff}
+.bks{display:flex;gap:8px;margin-top:4px}
+.bks button{flex:1;min-height:48px}
+.card .q{font-size:22px;padding:34px 0;color:var(--mute)}
+main.bt>*:not(#battle){display:none!important}
+main:not(.bt) #battle{display:none}
+.side{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:8px;margin-top:8px;text-align:center;font-size:15px}
+.side svg{width:90px;height:auto}
+.hp{height:12px;border:2px solid var(--line);border-radius:99px;overflow:hidden;position:relative;margin:4px 0}
+.hp i{position:absolute;inset:0;background:var(--c-hp);width:var(--w)}
+.duel{display:flex;gap:8px;margin-top:10px}
+.duel input{flex:1;min-width:0;min-height:48px;font:inherit;border:2px solid var(--line);border-radius:12px;padding:0 12px;background:var(--panel);color:var(--ink)}
+.duel button{min-height:48px}
+button:disabled{opacity:.5;cursor:default}
+.tr,.tr ul{list-style:none;margin:0;padding:0}
+.tr ul{margin-left:26px;padding-left:12px;border-left:2px solid var(--line)}
+.tr li{margin-top:8px}
+.tr ul>li{position:relative}
+.tr ul>li::before{content:"";position:absolute;left:-14px;top:27px;width:12px;border-top:2px solid var(--line)}
+.nd{display:flex;align-items:center;gap:10px;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:4px 10px}
+.nd svg{width:46px;height:auto;display:block}
+.nd.lock svg{filter:brightness(0) invert(.55)}
+.nd span{font-size:15px}
+.modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));background:rgba(10,20,35,.55)}
+.modal.on{display:flex}
+.mbox{width:100%;max-width:440px;max-height:100%;overflow-y:auto;background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:16px}
+.mbox h2{margin:0 0 6px;font-size:20px}
+.mbox h3{margin:12px 0 2px;font-size:16px}
+.mbox p{margin:0;font-size:15px;color:var(--mute)}
+.mbox button{width:100%;margin-top:14px}
+@keyframes hop{50%{transform:translateY(-14px)}}
+@keyframes tilt{50%{transform:rotate(4deg)}}
+@keyframes slump{50%{transform:translateY(5px) rotate(-3deg)}}
+@keyframes shiver{50%{transform:translateX(3px)}}
+@keyframes wob{0%,100%{transform:rotate(-5deg)}30%{transform:rotate(6deg) translateY(-8px)}60%{transform:rotate(-2deg)}}
+.stage{--an:bob 2.6s ease-in-out infinite}
+.stage[data-p="netsu"]{--an:hop .8s ease-in-out infinite}
+.stage[data-p="doryoku"]{--an:bob 3.4s ease-in-out infinite}
+.stage[data-p="tensai"]{--an:tilt 4s ease-in-out infinite}
+.stage[data-p="mendo"]{--an:slump 4.5s ease-in-out infinite}
+.stage[data-p="sabishi"]{--an:shiver .5s ease-in-out infinite}
+.stage[data-p="kibun"]{--an:wob 1.9s ease-in-out infinite}
+.stage[data-p="ino"]{--an:bob 3s ease-in-out infinite}
+.stage[data-p="ino"]:not(.dead) svg{filter:drop-shadow(0 0 7px var(--c-psy))}
+.stage:not(.pop):not(.dead) svg{animation:var(--an)}
+@media (prefers-reduced-motion:reduce){.stage:not(.pop):not(.dead) svg{animation:none}}
+#btCmd em{display:block;font-size:11px;font-style:normal;font-weight:normal;opacity:.75;white-space:normal}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div><h1 id="name">棒人間</h1><div class="sub"><span id="age"></span></div></div>
+<div class="hbtns"><button class="ico" id="btlBtn" aria-label="対戦を開く">⚔️</button><button class="ico" id="helpBtn" aria-label="性格のヒントを見る">？</button><button class="ico" id="bookBtn" aria-label="図鑑を開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg></button><button class="ico" id="setBtn" aria-label="設定を開く">⚙️</button></div>
+</header>
+<nav class="tabs" id="tabs"></nav>
+<section class="stage" id="stage"><div class="bubble" id="bub"></div><div id="fig"></div><p class="form" id="form"></p></section>
+<section class="will hide" id="will"></section>
+<section class="bars" id="bars"></section>
+<section class="acts" id="acts"></section>
+<section class="acts hide" id="foods"></section>
+<button class="big hide" id="again">新しい棒人間をもらう</button>
+<ul class="log" id="log"></ul>
+<section id="book">
+<div class="bkhead"><button id="bkBack">戻る</button><h2 id="bkTitle">図鑑</h2><button id="bkSwitch">実績へ切り替え</button></div>
+<div id="bkBody"></div>
+</section>
+<section id="battle">
+<div class="bkhead"><button id="btBack">戻る</button><h2>対戦</h2><span></span></div>
+<div id="btLobby">
+<p class="sub" id="btMe"></p>
+<button id="btRand" class="big">ランダムバトル</button>
+<div class="duel"><input id="btPw" maxlength="20" placeholder="合言葉" aria-label="合言葉"><button id="btDuel">決闘</button></div>
+<div class="side" id="btRec" style="text-align:left"></div>
+<p class="sub" id="btMsg"></p>
+</div>
+<div id="btField" class="hide">
+<div class="side" id="btOp"></div>
+<div class="side" id="btYou"></div>
+<p class="sub" id="btSt"></p>
+<div class="acts" id="btCmd"></div>
+<ul class="log" id="btLog"></ul>
+<button id="btQuit" style="width:100%;margin-top:12px">降参して戻る</button>
+</div>
+</section>
+</main>
+<div class="modal" id="help" role="dialog" aria-modal="true" aria-labelledby="hTitle"><div class="mbox">
+<h2 id="hTitle">性格を見抜くヒント</h2>
+<h3>セリフ</h3><p>行動ごとの吹き出しに口調や本音が出ます。同じ行動でも、反応が違うかもしれません。</p>
+<h3>仕草</h3><p>表情や動きをよく見てみましょう。跳ねるか、震えるか、揺れるか、ぷかぷか浮くかなど</p>
+<h3>拒否</h3><p>断られた行動は性格のサインです。何を嫌がるか、どれくらいの頻度かを見ましょう。</p>
+<h3>ステータスの増え方</h3><p>数値の横の「+」に注目。毎回一定か、大きくぶれるか、行動によって得意不得意があるか。</p>
+<h3>ランダムイベント</h3><p>勝手に起きる出来事にも性格が出ます。</p>
+<h3>ごはんと放置</h3><p>食べ物の好みや、放置されたときの反応にも注目してみてください。</p>
+<button id="hClose">閉じる</button>
+</div></div>
+<div class="modal" id="set" role="dialog" aria-modal="true" aria-labelledby="sTitle"><div class="mbox">
+<h2 id="sTitle">設定</h2>
+<button id="rsBtn">データをリセット</button>
+<div id="rsConf" class="hide"><p>図鑑・実績・施設レベルを含む、すべてのデータが消えます。元には戻せません。</p><button id="rsYes">すべて消して最初から</button><button id="rsNo">やめる</button></div>
+<button id="sClose">閉じる</button>
+</div></div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+var KEY="stickman_v1";
+var STATS=[["hp","体力","--c-hp"],["str","筋力","--c-str"],["int","知識","--c-int"],["mot","やる気","--c-mot"],["psy","異能","--c-psy"]];
+var PERS={
+ netsu:{n:"熱血",m:{str:1.5,hp:1.3,int:0.6}},
+ doryoku:{n:"努力家",m:{int:1.3,hp:1.2,str:1.2}},
+ tensai:{n:"天才肌",m:{int:1.6}},
+ mendo:{n:"めんどくさがり",m:{}},
+ sabishi:{n:"寂しがり",m:{}},
+ kibun:{n:"気分屋",m:{}},
+ ino:{n:"異能の子",m:{psy:2}},
+ robo:{n:"ロボ",m:{int:1.4,str:1.2,hp:1.2}},angel:{n:"天使",m:{}},kin:{n:"ごきげん",m:{hp:1.3,str:1.3,int:1.3,psy:1.3}}
+};
+var ACT={
+ talk:{l:"会話",s:"関係↑ やる気↑ 筋力↓",g:{int:1},mot:4,rel:8,msg:"おしゃべりして仲が深まった。"},
+ train:{l:"トレーニング",s:"体力↑ 筋力↑ 知識↓",g:{hp:4,str:4},mot:0,rel:0,need:1,msg:"汗だくでトレーニングした。"},
+ study:{l:"学習",s:"知識↑ やる気↓",g:{int:5},mot:-5,rel:0,need:1,msg:"机に向かって勉強した。"},
+ play:{l:"遊ぶ",s:"やる気↑ 関係↑",g:{hp:1,psy:1},mot:8,rel:4,msg:"思いきり遊んだ！"},
+ fight:{l:"喧嘩",s:"筋力↑ 異能？ 関係↓",g:{str:5,hp:2},mot:-3,rel:-8,need:1,msg:"殴り合いの喧嘩をした。"}
+};
+var EVO={
+ base:[["hp",25,"hp1"],["str",25,"str1"],["int",25,"int1"],["psy",20,"psy1"],["mot",90,"mot1"]],
+ hp1:[["hp",60,"hp2"]],str1:[["str",60,"str2"]],int1:[["int",60,"int2"]],psy1:[["psy",50,"psy2"]]
+};
+var FN={base:"ふつうの棒人間",hp1:"体力自慢の棒人間",hp2:"鉄人",str1:"マッチョな棒人間",str2:"筋肉の化身",int1:"物知りな棒人間",int2:"博士",psy1:"超能力者",psy2:"覚醒者",mot1:"熱血漢",hp3:"超人",str3:"拳神",int3:"大賢者",psy3:"超越者",pet:"甘えん坊",joker:"道化師",lazy:"ぐうたら王",prophet:"予言者",gourmet:"大食い",bancho:"ケンカ番長",idol:"人気者",warrior:"武人",sporty:"スポーツマン",mage:"魔法使い",hermit:"仙人"};
+var NAMES=["ボウ","ヒョロ","ニョロ","スティ","ライン","タテ","ヒト","ぼーや"];
+var FOOD={rice:{l:"ごはん",h:25,s:"空腹度+25"},meat:{l:"お肉",h:35,g:{str:1},s:"空腹度+35"},veg:{l:"野菜",h:20,g:{hp:1},s:"空腹度+20"},fish:{l:"お魚",h:25,g:{int:1},s:"空腹度+25"},snack:{l:"おやつ",h:15,m:6,s:"空腹度+15"}};
+var LINES={
+netsu:{talk:['よっしゃ、燃えてきた！','語る暇があるなら走ろうぜ！'],train:'もっとだ！まだいける！',study:'うぅ…頭から煙が出る…',play:'全力で遊ぶぜー！',fight:'かかってこい！！',hungry:'腹が減っては戦ができねぇ…',evo:'燃えてきたあああ！',back:'遅いぞ！待ちくたびれた！'},
+doryoku:{talk:['今日も頑張りました。','コツコツが大事ですよね。'],train:'昨日の自分に勝ちたいんです。',study:'ここ、もう一回やってもいいですか？',play:'息抜きも、大事ですよね。',fight:'争いは苦手ですが…鍛えにはなりますね。',hungry:'お腹はすいたけど…あと少しだけ…',evo:'努力が、報われました…！',back:'待っている間も練習していました。'},
+tensai:{talk:['ふむ、面白い話だね。','君に説明して理解できるかな？'],train:'非効率だな…まあ付き合おう。',study:'その問題はもう解けている。',play:'遊びにも法則があるんだよ。',fight:'感情的になるなんて、非合理だ。',hungry:'血糖値が下がると思考が鈍る…',evo:'当然の結果だね。',back:'遅い。時間の浪費だ。'},
+mendo:{talk:['…あー、うん…','ねむい…'],train:'はぁ…はぁ…もう無理…',study:'文字が…ゲシュタルト崩壊…',play:'まあ、これならやってもいいかな…',fight:'やめてよ…疲れる…',hungry:'動けない…ごはん…',evo:'え、進化？…めんど…',back:'…あ、いたんだ。'},
+sabishi:{talk:['お話しできて嬉しい…！','ずっとそばにいてね…'],train:'一緒にいてくれる…？',study:'ひとりだと不安だよ…',play:'わーい！もっと遊ぼうよ！',fight:'やだ…ケンカ、こわいよ…',hungry:'お腹すいた…ひとりぼっちだし…',evo:'見ててくれてありがとう！',back:'どこ行ってたの…さみしかった…'},
+kibun:{talk:['今日は最高の気分！','…やっぱ気分じゃないかも。'],train:'やる気出てきたー！…たぶん！',study:'あっ、鳥だ！',play:'イェーイ！…飽きた！',fight:'ムカつく！…でもスッキリした！',hungry:'お腹すいたー！…いや、眠い！',evo:'うおー！…これでいいや！',back:'あれ、いたの？ま、いっか！'},
+ino:{talk:['今日は…風が囁いてるの。','君の後ろに、何かいるよ。'],train:'身体を動かすと…視える気がする。',study:'文字が…光って見える…',play:'あの光と遊んでるの。',fight:'手が…勝手に熱くなる…',hungry:'お腹の中で…星が鳴ってる…',evo:'殻が…割れていく…',back:'待ってる間、ずっと声が聞こえてた。'}
+};
+var WILL={
+netsu:['いい人生だった…！燃え尽きたぜ…','ちくしょう…まだ…戦えたのに…'],
+doryoku:['最後まで、頑張れました…ありがとう。','もっと…頑張りたかった…'],
+tensai:['私の人生は…計算どおりだった。','こんな結末は…計算外だ…'],
+mendo:['やっと…ゆっくり眠れる…','あー…もう…疲れた…'],
+sabishi:['最後まで、そばにいてくれてありがとう…','ひとりに…しないでって…言ったのに…'],
+kibun:['楽しかったー！…次はもっと楽しもっと！','あーあ…ま、いっか…'],
+ino:['また…別の場所で会えるよ…','あの声が…迎えに来たみたい…']
+};
+var KG='今日は気分じゃない！';
+var PD={netsu:{study:[.35,'勉強より体を動かしたい！']},doryoku:{},tensai:{play:[.25,'そんな非生産的なこと、パスだ。']},mendo:{train:[.4,'えー…やだ…'],study:[.4,'むり…今日は無理…']},sabishi:{fight:[.55,'やだ！ケンカなんてしない…']},kibun:{talk:[.2,KG],train:[.25,KG],study:[.25,KG],play:[.2,KG],fight:[.25,KG]},ino:{talk:[.15,'…今、声が聞こえてるから後で。']}};
+var EVT={
+netsu:[['勝手に自主トレを始めた！',{str:2,hp:1}],['壁を殴って拳を痛めた…',{mot:-3}]],
+doryoku:[['夜中にこっそり自主練していた。',{hp:1,str:1,int:1}],['ノートにびっしり書き込んでいた。',{int:3}]],
+tensai:[['難しそうな本を読みふけっている。',{int:3}],['こちらの行動を分析しているようだ…',{rel:-2}]],
+mendo:[['ずっと寝ていた…',{mot:5}],['サボって昼寝している。',{mot:3,hp:-1}]],
+sabishi:[['ぴったりくっついてきた。',{rel:6,mot:3}],['こっそり泣いていた…',{mot:-4}]],
+kibun:[['急にテンションが爆上がりした！',{mot:10}],['突然ふてくされてしまった。',{mot:-8,rel:-2}]],
+ino:[['空を見上げて何かと話している。',{psy:3}],['不思議な光を放った！',{psy:2,mot:2}]]
+};
+var VAR={netsu:[.8,1.2],doryoku:[1,1],tensai:[.9,1.1],mendo:[.5,1.1],sabishi:[.85,1.15],kibun:[.3,2],ino:[.7,1.4]};
+function pk(x){return Array.isArray(x)?x[rnd(0,x.length-1)]:x}
+var LOSS={netsu:0.5,doryoku:0.5,tensai:1,mendo:1.5,sabishi:1.5,ino:1,robo:0.5,angel:1,kin:0.5};
+var LOSS2={netsu:1.5,doryoku:0.7,tensai:0.5,mendo:1,sabishi:1,ino:1,robo:0.3,angel:1,kin:0.7};
+function cc(k){return (S.c&&S.c[k])||0}
+function pts(){return (M.xp||0)+(M.days||0)}
+function lv(){return 1+Math.floor(pts()/40)}
+function cap(){return Math.min(4,1+Math.floor(lv()/3))}
+var SP={robo:'tier3',angel:'streak5',kin:'dex15'};
+function pickP(){var nk=['netsu','doryoku','tensai','mendo','sabishi','kibun','ino'];var sp=Object.keys(SP).filter(function(x){return M.ach[SP[x]]});return (sp.length&&Math.random()<0.0001)?sp[rnd(0,sp.length-1)]:nk[rnd(0,nk.length-1)]}
+var KEY2='stickman_v2',ST={men:[],i:0};
+function loadST(){var t=null;try{t=JSON.parse(localStorage.getItem(KEY2))}catch(e){}
+ if(!t||!t.men||!t.men.length){var o=load();t={men:o?[o]:[],i:0}}
+ if(!t.men[t.i])t.i=0;
+ return t}
+function tickOthers(){
+ ST.men.forEach(function(m){
+  if(m===S||!m||m.dead)return;
+  m.hun=clamp(m.hun-2);m.st.mot=clamp(m.st.mot-1);m.rel-=1;
+  if(m.hun<=0){m.starve=(m.starve||0)+1;m.rel-=2}
+  if(m.starve>=6)m.dead='hunger';else if(m.rel<=0)m.dead='neglect';
+  if(m.dead){m.say='';M.deaths++;m.log.unshift('放置されていた間に、旅立ってしまった…')}
+ });
+}
+LINES.robo={talk:['ピピッ、会話ヲ記録シマス。','感情ヲ学習中…'],train:'トレーニング開始。筋出力120%。',study:'データ吸収中…完了。',play:'遊戯モード、起動！',fight:'戦闘プログラム実行！',hungry:'エネルギー残量、低下…',evo:'アップデート、完了。',back:'再起動…待機時間、長イ。'};
+LINES.angel={talk:['あなたに会えて幸せです。','みんな仲良くしましょう。'],train:'みんなのために強くなります。',study:'世界のことを知りたいな。',play:'ふわふわ〜、楽しい！',fight:'争いは…悲しいです…',hungry:'お腹がすきました…',evo:'光が…満ちていきます。',back:'ずっと祈っていました。'};
+LINES.kin={talk:['今日もゴキゲンだよ！','キラキラしてるでしょ？'],train:'ピカピカに鍛えるぞ！',study:'ふむふむ、キラリとひらめいた！',play:'ヒャッホー！最高！',fight:'ピカーッ！勝負だ！',hungry:'お腹ペコペコ…でもゴキゲン！',evo:'もっとキラキラになったよ！',back:'待ってたよ！おかえり！'};
+EVT.robo=[['自己診断を実行している。',{mot:3}],['勝手に計算を始めた。',{int:3}]];
+EVT.angel=[['空を見上げて祈っている。',{rel:5,mot:3}],['誰かに優しく微笑んだ。',{mot:4}]];
+EVT.kin=[['突然キラキラ輝きだした！',{mot:8}],['ご機嫌でスキップしている。',{mot:5,rel:2}]];
+VAR.robo=[1,1];VAR.angel=[.9,1.2];VAR.kin=[1,1.3];
+WILL.robo=['シャットダウン…アリガトウ。','エラー…システム、停止…'];
+WILL.angel=['また…光の中で会いましょう…','ごめんなさい…もう、飛べません…'];
+WILL.kin=['最高に…キラキラな人生だった！','キラキラ…消えちゃう…'];
+function T(s,n){return function(){return S.st[s]>=n}}
+var EV2={
+base:[
+['pet',function(){return S.pers==='sabishi'&&S.rel>=90}],
+['joker',function(){return S.pers==='kibun'&&cc('play')>=10}],
+['lazy',function(){return S.pers==='mendo'&&S.age>=25&&cc('train')+cc('study')<=3}],
+['prophet',function(){return S.pers==='ino'&&S.st.int>=20}],
+['gourmet',function(){return cc('eat')>=10}],
+['bancho',function(){return cc('fight')>=10}],
+['idol',function(){return cc('talk')>=12&&S.rel>=80}],
+['warrior',function(){return S.st.str>=20&&S.st.int>=20}],
+['sporty',function(){return S.st.hp>=20&&S.st.mot>=70}],
+['mage',function(){return S.st.int>=20&&S.st.psy>=15}],
+['hermit',function(){return S.st.hp>=20&&S.st.psy>=15}],
+['hp1',T('hp',25)],['str1',T('str',25)],['int1',T('int',25)],['psy1',T('psy',20)],['mot1',T('mot',90)]],
+hp1:[['hp2',T('hp',60)]],hp2:[['hp3',T('hp',90)]],
+str1:[['str2',T('str',60)]],str2:[['str3',T('str',90)]],
+int1:[['int2',T('int',60)]],int2:[['int3',T('int',90)]],
+psy1:[['psy2',T('psy',50)]],psy2:[['psy3',T('psy',85)]]
+};
+var SPF=['robo_2','robo_3','angel_2','angel_3','kin_2','kin_3'];
+function fnKeys(){return Object.keys(FN).filter(function(k){return SPF.indexOf(k)<0})}
+function all(n){return ['hp','str','int','mot','psy'].every(function(k){return S.st[k]>=n})}
+function two(a,x,b,y){return function(){return S.st[a]>=x&&S.st[b]>=y}}
+function ct(k,n){return function(){return cc(k)>=n}}
+EV2.warrior=[['warrior_2',two('str',45,'int',45)]];EV2.warrior_2=[['warrior_3',two('str',75,'int',75)]];
+EV2.sporty=[['sporty_2',two('hp',45,'mot',85)]];EV2.sporty_2=[['sporty_3',two('hp',75,'mot',95)]];
+EV2.mage=[['mage_2',two('int',45,'psy',35)]];EV2.mage_2=[['mage_3',two('int',75,'psy',60)]];
+EV2.hermit=[['hermit_2',two('hp',45,'psy',35)]];EV2.hermit_2=[['hermit_3',two('hp',75,'psy',60)]];
+EV2.gourmet=[['gourmet_2',ct('eat',20)]];EV2.gourmet_2=[['gourmet_3',ct('eat',32)]];
+EV2.bancho=[['bancho_2',ct('fight',22)]];EV2.bancho_2=[['bancho_3',ct('fight',36)]];
+EV2.idol=[['idol_2',function(){return cc('talk')>=25&&S.rel>=90}]];EV2.idol_2=[['idol_3',function(){return cc('talk')>=40&&S.rel>=100}]];
+EV2.pet=[['pet_2',function(){return S.rel>=100&&cc('talk')>=15}]];EV2.pet_2=[['pet_3',function(){return S.rel>=100&&cc('talk')>=30}]];
+EV2.joker=[['joker_2',ct('play',20)]];EV2.joker_2=[['joker_3',ct('play',32)]];
+EV2.lazy=[['lazy_2',function(){return S.age>=45&&cc('train')+cc('study')<=4}]];EV2.lazy_2=[['lazy_3',function(){return S.age>=65&&cc('train')+cc('study')<=5}]];
+EV2.prophet=[['prophet_2',two('int',45,'psy',30)]];EV2.prophet_2=[['prophet_3',two('int',75,'psy',55)]];
+var SPEV={robo:[['robo_2',function(){return S.st.int>=70&&S.st.str>=60&&S.st.hp>=60}]],angel:[['angel_2',function(){return S.rel>=100&&S.st.mot>=95&&cc('talk')>=25&&cc('fight')===0}]],kin:[['kin_2',function(){return all(60)}]]};
+EV2.robo_2=[['robo_3',function(){return all(85)}]];
+EV2.angel_2=[['angel_3',function(){return S.st.int>=80&&S.st.psy>=80&&S.rel>=100&&cc('fight')===0}]];
+EV2.kin_2=[['kin_3',function(){return all(90)}]];
+Object.assign(FN,{warrior_2:'剣豪',warrior_3:'剣聖',sporty_2:'アスリート',sporty_3:'レジェンド',mage_2:'大魔道士',mage_3:'魔導王',hermit_2:'大仙人',hermit_3:'仙神',gourmet_2:'美食家',gourmet_3:'食の王',bancho_2:'総長',bancho_3:'伝説の番長',idol_2:'スター',idol_3:'国民的スター',pet_2:'ぬくもりの化身',pet_3:'愛の神',joker_2:'大道芸人',joker_3:'笑いの神',lazy_2:'ぐうたら大王',lazy_3:'ぐうたら神',prophet_2:'大予言者',prophet_3:'全知の予言者',robo_2:'メカ戦士',robo_3:'神機',angel_2:'大天使',angel_3:'熱天使',kin_2:'黄金の王',kin_3:'黄金神'});
+var PAR={};Object.keys(EV2).forEach(function(k){EV2[k].forEach(function(c){PAR[c[0]]=k})});
+Object.keys(SPEV).forEach(function(p){PAR[SPEV[p][0][0]]='base'});
+function hintOf(k,f){
+ if(HINT[k])return HINT[k][f?1:0];
+ if(k==='base')return 'はじまりの姿';
+ var sp=SPF.indexOf(k)>=0,st=+k.split('_')[1];
+ if(!f)return sp?'ごく限られた者だけが至る姿':st===3?'その道の頂に立つ者':'その道を極めつつある者';
+ return sp?'特殊な子だけが至れる、極めて厳しい道の先。':'「'+FN[PAR[k]]+'」の道をさらに極めるとなれる。';
+}
+
+function dl(k){var d=S.d&&S.d[k];return d?'<small class="dl">'+(d>0?'+':'')+d+'</small>':''}
+var MK="stickman_meta1",M=null;
+var S=null;
+function $(id){return document.getElementById(id)}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function clamp(v){return Math.max(0,Math.min(100,v))}
+function load(){try{var r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY2,JSON.stringify(ST));localStorage.setItem(MK,JSON.stringify(M))}catch(e){}}
+function loadM(){var m=null;try{m=JSON.parse(localStorage.getItem(MK))}catch(e){}if(!m)m={};m.forms=m.forms||{};m.ach=m.ach||{};m.cnt=m.cnt||{};m.deaths=m.deaths||0;return m}
+function say(t){S.log.unshift(t);S.log=S.log.slice(0,4)}
+function newMan(){
+ var p=pickP();
+ var st={hp:rnd(3,8),str:rnd(3,8),int:rnd(3,8),mot:rnd(35,50),psy:rnd(0,4)};
+ if(p==="ino")st.psy+=10;
+ var fk=Object.keys(FOOD),li=rnd(0,fk.length-1),ha=(li+rnd(1,fk.length-1))%fk.length;
+ S={name:NAMES[rnd(0,NAMES.length-1)],pers:p,age:0,life:rnd(50,90)+(p==='kin'?20:0),st:st,rel:50,hun:80,starve:0,like:fk[li],hate:fk[ha],form:"base",last:Date.now(),dead:null,log:["施設から棒人間を受け取った。"]};
+ ST.men[ST.i]=S;if(SP[p]){M.met=M.met||{};M.met[p]=1}save();render();
+}
+function die(c){
+ S.dead=c;S.say="";M.deaths++;if(/3$/.test(S.form)){if(S.form===M.lastForm)M.streak=(M.streak||1)+1;else M.streak=1;M.lastForm=S.form}else{M.streak=0;M.lastForm=null}if(c==="age")M.lifeEnd=1;
+ var m={age:"寿命をまっとうした。"+S.age+"日間ありがとう。",rel:"関係が冷え切って、心が折れてしまった…",hunger:"長い空腹に耐えられなかった…",battle:"対戦に敗れ、旅立ってしまった…",neglect:"長く放置され、いなくなってしまった…"};
+ say(m[c]);
+}
+function neglect(){
+ var u=Math.floor((Date.now()-S.last)/432e5);
+ if(u>0&&!S.dead){
+  S.rel-=6*u;S.hun=clamp(S.hun-15*u);S.st.mot=clamp(S.st.mot-3*u);S.last=Date.now();
+  say("しばらく放置されて、寂しそうだ…");S.say=pk(LINES[S.pers].back);
+  if(S.rel<=0)die("neglect");
+ }
+}
+function evolve(){
+ var list=(S.form==="base"&&SPEV[S.pers])?SPEV[S.pers]:EV2[S.form];if(!list)return;
+ var best=null;
+ for(var i=0;i<list.length;i++){if(list[i][1]()){best=[0,0,list[i][0]];break}}
+ if(best){
+  S.form=best[2];say("進化した！ "+FN[S.form]+"になった！");S.say=pk(LINES[S.pers].evo);
+  var el=$("stage");el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");
+ }
+}
+function act(k){
+ if(S.dead)return;
+ var rf=(PD[S.pers]||{})[k];
+ if(rf&&Math.random()<rf[0]){
+  S.st.mot=clamp(S.st.mot-1);S.rel=Math.min(100,S.rel-1);S.say=rf[1];S.d=null;
+  say('断られてしまった…');
+  if(S.rel<=0)die('rel');
+  save();render();return;
+ }
+ var b0={};ALLST.forEach(function(q){b0[q]=S.st[q]});
+ var A=ACT[k],low=A.need&&S.st.mot<10,starving=S.hun<=0,mul=(low?0.4:1)*(starving?0.5:1),P=PERS[S.pers];
+ var txt=low?"やる気が出なくて、いまいち身が入らない…":(starving&&A.need)?"お腹がすいて力が出ない…":A.msg;
+ for(var s in A.g){
+  var v=A.g[s]*mul*(P.m[s]||1);
+  var vr=VAR[S.pers];v*=vr[0]+Math.random()*(vr[1]-vr[0]);
+  S.st[s]=clamp(S.st[s]+Math.round(v));
+ }
+ if(k==="fight"&&Math.random()<0.35){S.st.psy=clamp(S.st.psy+3*(P.m.psy||1));txt+=" 不思議な力を感じた。"}
+ var dm=A.mot;if(dm<0&&S.pers==="mendo")dm*=1.5;
+ var dr=A.rel;
+ if(dr<0&&S.pers==="sabishi")dr*=1.5;
+ if(k==="talk"&&S.pers==="sabishi")dr*=1.5;
+ if(k==="talk"){var ls=S.pers==="kibun"?rnd(0,4):Math.round(2*(LOSS[S.pers]||1));S.st.str=clamp(S.st.str-ls)}
+ if(k==="train"){var lt=S.pers==="kibun"?rnd(0,6):Math.round(3*(LOSS2[S.pers]||1));S.st.int=clamp(S.st.int-lt)}
+ S.st.mot=clamp(S.st.mot+Math.round(dm)-1);
+ S.rel=Math.min(100,S.rel+Math.round(dr));
+ S.age++;S.last=Date.now();M.cnt[k]=(M.cnt[k]||0)+1;S.c=S.c||{};S.c[k]=(S.c[k]||0)+1;M.days=(M.days||0)+1;
+ S.hun=clamp(S.hun-(k==="train"||k==="fight"?7:5));
+ if(S.hun<=0){S.starve=(S.starve||0)+1;S.st.mot=clamp(S.st.mot-3);S.rel-=3;txt+=" お腹がペコペコだ…"}
+ say(txt);
+ S.say=(S.hun<20&&Math.random()<0.6)?pk(LINES[S.pers].hungry):pk(LINES[S.pers][k]);
+ if(Math.random()<0.18){var ev=pk(EVT[S.pers]);say(ev[0]);for(var q in ev[1]){if(q==="rel")S.rel=Math.min(100,S.rel+ev[1][q]);else S.st[q]=clamp(S.st[q]+ev[1][q])}}
+ evolve();
+ tickOthers();
+ S.d={};ALLST.forEach(function(q){S.d[q]=S.st[q]-b0[q]});
+ if(S.starve>=5)die("hunger");
+ else if(S.rel<=0)die("rel");
+ else if(S.age>=S.life)die("age");
+ save();render();
+}
+function eat(f){
+ if(S.dead)return;
+ if(S.hun>=95){say("もうお腹いっぱいみたい。");save();render();return}
+ var F=FOOD[f],h=F.h,txt=F.l+"を食べさせた。",dm=F.m||0,dr=0;
+ if(S.like===f){M.liked=1;h=Math.round(h*1.5);dm+=5;dr+=4;txt+=" 大好物らしく、大喜びだ！"}
+ else if(S.hate===f){h=Math.round(h*0.4);dm-=5;dr-=3;txt+=" 苦手なのか、嫌そうな顔をした…"}
+ S.hun=clamp(S.hun+h);
+ for(var s in (F.g||{}))S.st[s]=clamp(S.st[s]+F.g[s]);
+ S.st.mot=clamp(S.st.mot+dm);S.rel=Math.min(100,S.rel+dr);
+ if(S.hun>0)S.starve=0;
+ S.age++;S.last=Date.now();M.cnt.eat=(M.cnt.eat||0)+1;S.c=S.c||{};S.c.eat=(S.c.eat||0)+1;M.days=(M.days||0)+1;M.foods=M.foods||{};M.foods[f]=1;
+ S.d=null;S.say=S.like===f?'これ大好き！':S.hate===f?'うっ…これは苦手…':'もぐもぐ…';say(txt);evolve();tickOthers();
+ if(S.rel<=0)die("rel");
+ else if(S.age>=S.life)die("age");
+ save();render();
+}
+function eyesFor(p){
+ var d='fill="var(--ink)" stroke="none"';
+ var e='<circle cx="91" cy="58" r="3.4" '+d+'/><circle cx="109" cy="58" r="3.4" '+d+'/>';
+ var b=function(s){return '<path d="'+s+'" stroke-width="3"/>'};
+ if(p==='netsu')return e+b('M83 48L97 53M117 48L103 53');
+ if(p==='doryoku')return e+b('M84 49H97M103 49H116');
+ if(p==='tensai')return e+b('M104 49Q110 45 117 49');
+ if(p==='mendo')return b('M86 58H96M104 58H114');
+ if(p==='sabishi')return e+b('M84 52L97 48M116 52L103 48')+'<path d="M87 66q-3 5 0 8" stroke="var(--c-int)" stroke-width="3"/>';
+ if(p==='kibun')return '<circle cx="91" cy="58" r="2.6" '+d+'/><circle cx="109" cy="58" r="5" '+d+'/>';
+ if(p==='ino')return '<circle cx="91" cy="58" r="6" fill="none" stroke-width="2"/><circle cx="109" cy="58" r="6" fill="none" stroke-width="2"/><circle cx="91" cy="58" r="2.4" '+d+'/><circle cx="109" cy="58" r="2.4" '+d+'/>';
+ if(p==='robo')return '<rect x="86" y="53" width="9" height="9" '+d+'/><rect x="105" y="53" width="9" height="9" '+d+'/>';
+ return e;
+}
+function fig(form,rel,mot,hun,dead,pers){
+ var fm=form,tr=0;if(form.indexOf('_')>0){var qq=form.split('_');form=qq[0];tr=+qq[1]}
+ if(tr&&(form==='robo'||form==='angel'||form==='kin'))pers=form;
+ var W={base:5,hp1:8,hp2:10,hp3:12,str1:8,str2:11,str3:13,int1:5,int2:5,int3:5,psy1:5,psy2:5,psy3:5,mot1:7,gourmet:7,bancho:7,warrior:7,sporty:6}[form]||5;W+=tr>=3?2:0;
+ var arms="M100 105L66 132M100 105L134 132",extra="",back="",lift=0;
+ if(form==="str1"||form==="str2"||form==="str3"){
+  arms="M100 105L72 112L62 90M100 105L128 112L138 90";
+  var r=form==="str1"?10:form==="str2"?14:17;
+  extra+='<circle cx="80" cy="110" r="'+r+'" fill="var(--c-str)" stroke="none"/><circle cx="120" cy="110" r="'+r+'" fill="var(--c-str)" stroke="none"/>';
+  extra+='<path d="M48 90H76M124 90H152" stroke-width="6"/><circle cx="48" cy="90" r="7" fill="var(--ink)"/><circle cx="76" cy="90" r="7" fill="var(--ink)"/><circle cx="124" cy="90" r="7" fill="var(--ink)"/><circle cx="152" cy="90" r="7" fill="var(--ink)"/>';
+ }
+ if(form==="hp1"||form==="hp2"||form==="hp3"){
+  extra+='<path d="M74 50Q100 40 126 50" stroke="var(--c-hp)" stroke-width="7"/><path d="M100 128c-12-9-14-18-7-21 4-2 7 0 7 3 0-3 3-5 7-3 7 3 5 12-7 21z" fill="var(--c-hp)" stroke="none"/>';
+  if(form==="hp2"||form==="hp3")back+='<circle cx="100" cy="125" r="108" fill="none" stroke="var(--gold)" stroke-width="3" stroke-dasharray="4 9"/><path d="M100 150l5 10 11 1-8 8 2 11-10-6-10 6 2-11-8-8 11-1z" fill="var(--gold)" stroke="none" transform="translate(0,-48) scale(1)"/>';
+ }
+ if(form==="int1"||form==="int2"||form==="int3"){
+  extra+='<circle cx="91" cy="58" r="9" fill="none" stroke-width="3"/><circle cx="109" cy="58" r="9" fill="none" stroke-width="3"/><path d="M100 58h0" stroke-width="3"/>';
+  extra+='<rect x="124" y="124" width="26" height="18" rx="2" fill="var(--c-int)" stroke-width="3"/>';
+  if(form==="int2"||form==="int3")extra+='<path d="M68 38L100 24L132 38L100 50Z" fill="var(--ink)" stroke-width="2"/><path d="M128 40v18" stroke="var(--gold)" stroke-width="3"/><path d="M88 80Q100 92 112 80" fill="var(--c-int)" stroke="none" opacity=".35"/>',
+   back+='<text x="30" y="60" font-size="22" fill="var(--c-int)" stroke="none">✦</text><text x="160" y="90" font-size="18" fill="var(--c-int)" stroke="none">✦</text>';
+ }
+ if(form==="psy1"||form==="psy2"||form==="psy3"){
+  lift=form==="psy1"?-12:-22;
+  back+='<circle cx="40" cy="80" r="5" fill="var(--c-psy)" stroke="none"/><circle cx="162" cy="110" r="6" fill="var(--c-psy)" stroke="none"/><circle cx="150" cy="40" r="4" fill="var(--c-psy)" stroke="none"/><circle cx="52" cy="160" r="4" fill="var(--c-psy)" stroke="none"/>';
+  if(form==="psy2"||form==="psy3")back+='<circle cx="100" cy="120" r="96" fill="none" stroke="var(--c-psy)" stroke-width="3"/><circle cx="100" cy="120" r="74" fill="none" stroke="var(--c-psy)" stroke-width="2" opacity=".5"/>',
+   extra+='<ellipse cx="100" cy="22" rx="24" ry="7" fill="none" stroke="var(--gold)" stroke-width="4"/>';
+ }
+ if(form==="mot1"){
+  arms="M100 105L70 92M100 105L130 92";
+  extra+='<path d="M76 40Q78 10 92 28Q96 2 106 28Q114 8 124 40Z" fill="var(--c-str)" stroke="var(--c-hp)" stroke-width="3"/><circle cx="68" cy="90" r="8" fill="var(--ink)"/><circle cx="132" cy="90" r="8" fill="var(--ink)"/>';
+ }
+ if(pers==='robo')extra+='<path d="M100 34V20" stroke-width="3"/><circle cx="100" cy="17" r="4" fill="var(--c-hp)"/>';
+ if(pers==='angel'){back+='<path d="M72 100Q30 70 36 120Q56 112 72 118ZM128 100Q170 70 164 120Q144 112 128 118Z" fill="var(--panel)" stroke-width="3"/>';extra+='<ellipse cx="100" cy="30" rx="22" ry="6" fill="none" stroke="var(--gold)" stroke-width="4"/>'}
+ if(pers==='kin')extra+='<path d="M40 60l4 8 8 4-8 4-4 8-4-8-8-4 8-4zM158 120l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="var(--gold)" stroke="none"/>';
+ if(tr>=1){var gc='var(--gold)';
+ back+='<circle cx="100" cy="125" r="104" fill="none" stroke="'+gc+'" stroke-width="3" stroke-dasharray="3 8"/>';
+ extra+='<path d="M100 6l4 8 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z" fill="'+gc+'" stroke="none" transform="translate(48,14)"/>';
+ if(tr>=3){back+='<circle cx="100" cy="125" r="92" fill="none" stroke="'+gc+'" stroke-width="2"/>';extra+='<path d="M30 40l3 6 7 1-5 5 1 7-6-4-6 4 1-7-5-5 7-1zM170 60l3 6 7 1-5 5 1 7-6-4-6 4 1-7-5-5 7-1z" fill="'+gc+'" stroke="none"/>'}}
+ var hrt=function(x,y){return '<path d="M0 0c-8-6-9-13-4-15 3-1 4 1 4 3 0-2 1-4 4-3 5 2 4 9-4 15z" fill="var(--c-rel)" stroke="none" transform="translate('+x+','+y+')"/>'};
+ if(form==='hp3')back+='<path d="M82 100L40 200L100 170L160 200L118 100Z" fill="var(--c-hp)" stroke="none"/>';
+ if(form==='str3')back+='<path d="M40 190Q50 120 70 90Q60 140 80 190ZM160 190Q150 120 130 90Q140 140 120 190Z" fill="var(--c-str)" opacity=".45" stroke="none"/>';
+ if(form==='int3')extra+='<path d="M88 78Q100 120 112 78Z" fill="var(--panel)" stroke-width="3"/>',back+='<circle cx="100" cy="120" r="100" fill="none" stroke="var(--c-int)" stroke-width="3" stroke-dasharray="2 8"/>';
+ if(form==='psy3')back+='<path d="M70 110Q20 70 30 140Q50 120 70 130ZM130 110Q180 70 170 140Q150 120 130 130Z" fill="var(--panel)" stroke-width="3"/>';
+ if(form==='gourmet')extra+='<ellipse cx="100" cy="124" rx="30" ry="30" fill="var(--panel)"/><path d="M142 106V138M136 106V118M148 106V118" stroke-width="4"/>';
+ if(form==='bancho')extra+='<circle cx="66" cy="132" r="8" fill="var(--ink)"/><circle cx="134" cy="132" r="8" fill="var(--ink)"/><path d="M108 66l10 7M110 73l8-8" stroke-width="3"/>';
+ if(form==='idol')back+=hrt(44,72)+hrt(156,100)+hrt(150,40);
+ if(form==='warrior')extra+='<path d="M138 64V126M130 126H146" stroke-width="5"/><circle cx="100" cy="30" r="7" fill="var(--ink)"/>';
+ if(form==='sporty')extra+='<path d="M74 50Q100 42 126 50" stroke="var(--c-mot)" stroke-width="7"/><circle cx="142" cy="200" r="10" fill="var(--panel)"/>';
+ if(form==='mage')extra+='<path d="M64 40H136M72 40L100 6L128 40" fill="var(--c-psy)" stroke-width="3"/><path d="M146 80V196" stroke-width="5"/><circle cx="146" cy="72" r="8" fill="var(--c-psy)"/>';
+ if(form==='hermit'){lift=-10;extra+='<path d="M88 78Q100 120 112 78Z" fill="var(--panel)" stroke-width="3"/>';back+='<ellipse cx="100" cy="214" rx="48" ry="12" fill="var(--panel)"/>'}
+ if(form==='pet'){arms='M100 105L66 132M100 105L128 92';extra+='<circle cx="84" cy="68" r="5" fill="var(--c-rel)" opacity=".6" stroke="none"/><circle cx="116" cy="68" r="5" fill="var(--c-rel)" opacity=".6" stroke="none"/><path d="M128 92L140 52" stroke-width="2"/>'+hrt(140,50)}
+ if(form==='joker')extra+='<path d="M76 40Q60 10 52 26Q64 30 80 38ZM124 40Q140 10 148 26Q136 30 120 38Z" fill="var(--c-hp)" stroke-width="3"/><circle cx="52" cy="26" r="5" fill="var(--gold)" stroke="none"/><circle cx="148" cy="26" r="5" fill="var(--gold)" stroke="none"/>';
+ if(form==='lazy')extra+='<path d="M78 38L84 18L94 32L100 14L106 32L116 18L122 38Z" fill="var(--gold)" stroke-width="3"/><text x="132" y="44" font-size="20" fill="var(--mute)" stroke="none">z</text><text x="148" y="26" font-size="14" fill="var(--mute)" stroke="none">z</text>';
+ if(form==='prophet'){lift=-8;extra+='<path d="M92 44Q100 38 108 44Q100 50 92 44Z" fill="var(--panel)" stroke-width="2"/><circle cx="100" cy="44" r="2.5" fill="var(--c-psy)" stroke="none"/><circle cx="142" cy="130" r="12" fill="var(--c-psy)" opacity=".5"/>';back+='<path d="M100 105L70 205H130Z" fill="var(--c-psy)" opacity=".25" stroke="none"/>'}
+ var eyes=dead?'<path d="M85 53l12 12M97 53l-12 12M103 53l12 12M115 53l-12 12" stroke-width="3"/>':eyesFor(pers);
+ var mouth=dead?'M93 73H107':(rel>60&&mot>40)?'M92 69Q100 79 108 69':(rel<25||mot<15||hun<20)?'M92 75Q100 66 108 75':'M93 71H107';
+ var shadow=lift?'':'<ellipse cx="100" cy="212" rx="40" ry="6" fill="var(--ink)" opacity=".15" stroke="none"/>';
+ return '<svg viewBox="0 0 200 224" role="img" aria-label="'+FN[fm]+'"><g fill="none" stroke="'+(pers==='kin'?'var(--gold)':'var(--ink)')+'" stroke-linecap="round" stroke-linejoin="round" stroke-width="'+W+'">'+shadow+'<g transform="translate(0,'+lift+')">'+back+'<circle cx="100" cy="60" r="26" fill="var(--panel)"/><path d="M100 86V150M100 150L78 205M100 150L122 205"/><path d="'+arms+'"/>'+extra+eyes+'<path d="'+mouth+'" stroke-width="3"/></g></g></svg>';
+}
+var ALLST=["hp","str","int","mot","psy"];
+var ACH=[
+["first","はじめまして","棒人間を迎える",function(){return true}],
+["ev1","はじめての進化","棒人間を進化させる",function(){return Object.keys(M.forms).length>1}],
+["dex5","図鑑をひらく","図鑑を5種類埋める",function(){return Object.keys(M.forms).length>=5}],
+["dexall","図鑑コンプリート","図鑑をすべて埋める",function(){return fnKeys().every(function(k){return M.forms[k]})}],
+["age30","スティック・パートナー","30日間育てる",function(){return S.age>=30}],
+["age60","長いつきあい","60日間育てる",function(){return S.age>=60}],
+["life","大往生","寿命をまっとうさせる",function(){return !!M.lifeEnd}],
+["love","なかよし","関係を100にする",function(){return S.rel>=100}],
+["liked","大好物の発見","大好物を食べさせる",function(){return !!M.liked}],
+["fight10","ケンカっ早い","喧嘩を10回する",function(){return (M.cnt.fight||0)>=10}],
+["talk20","おしゃべり好き","会話を20回する",function(){return (M.cnt.talk||0)>=20}],
+["max","限界突破","ステータスを100にする",function(){return ALLST.some(function(k){return S.st[k]>=100})}],
+["bye3","見送る人","3体を見送る",function(){return M.deaths>=3}],
+["bye5","お見送り上手","5体を見送る",function(){return M.deaths>=5},20],
+["bye10","見送りの達人","10体を見送る",function(){return M.deaths>=10},40],
+["train50","汗と涙の日々","トレーニングを50回する",function(){return (M.cnt.train||0)>=50},15],
+["study50","勉強家","学習を50回する",function(){return (M.cnt.study||0)>=50},15],
+["play30","遊び人","遊ぶを30回する",function(){return (M.cnt.play||0)>=30}],
+["eat50","食卓の主","ごはんを50回あげる",function(){return (M.cnt.eat||0)>=50},15],
+["all50","全能感","すべてのステータスを50以上にする",function(){return ALLST.every(function(k){return S.st[k]>=50})},30],
+["dex15","図鑑の達人","図鑑を15種類埋める（特殊な子を迎えられる）",function(){return Object.keys(M.forms).length>=15},25],
+["tier3","頂点へ","最終形態まで進化させる（特殊な子を迎えられる）",function(){return /3$/.test(S.form)},30],
+["streak3","一途な育て人","3段階目の同じ進化先で3回連続で育てる",function(){return (M.streak||0)>=3},30],
+["streak5","極めし者","3段階目の同じ進化先で5回連続で育てる（特殊な子を迎えられる）",function(){return (M.streak||0)>=5},50],
+["night","夜更かしさん","",function(){return (M.days||0)>0&&new Date().getHours()<5},15,1],
+["hungry0","ひもじい","",function(){return S.hun<=0},10,1],
+["allfood","グルメ探訪","",function(){return Object.keys(M.foods||{}).length>=5},20,1]
+];
+function checkAch(){
+ if(!S)return;
+ var ch=false;
+ if(!M.forms[S.form]){M.forms[S.form]=1;ch=true}
+ ACH.forEach(function(a){if(!M.ach[a[0]]&&a[3]()){M.ach[a[0]]=1;M.xp=(M.xp||0)+(a[4]||10);ch=true;say("実績解除：「"+a[1]+"」");for(var s in SP)if(SP[s]===a[0])say("特殊な子を迎えられるようになった！")}});
+ var l=lv(),c=cap();
+ if(l>(M.lv||1)){say('施設レベルが'+l+'に上がった！'+(c>(M.cap||1)?' 受け入れ人数が増えた！':''));ch=true}
+ if(l!==M.lv||c!==M.cap){M.lv=l;M.cap=c;ch=true}
+ if(ch)save();
+}
+var HINT={
+hp1:['丈夫さを誇る者が至る姿','体の丈夫さを伸ばし続けた者が至る。'],
+hp2:['鍛え抜かれた体の先にある','体力自慢がさらに体を鍛え続けた姿。'],
+hp3:['限界を超えた肉体の果て','鉄人が限界まで体を磨いた終着点。'],
+str1:['力を磨き続けた者の姿','力を中心に鳥えるとなれる。'],
+str2:['拳を極めつつある者','マッチョがさらに力を磨いた姿。'],
+str3:['力の頂に立つ者','力を限界まで磨いた最終形態。'],
+int1:['本の虫が辿る姿','学びを中心に重ねるとなれる。'],
+int2:['知識を深めた者の先','物知りがさらに学び続けた姿。'],
+int3:['知の果てに辿り着く者','知識を限界まで磨いた最終形態。'],
+psy1:['不思議な力に目覚めた者','不思議な力をいち早く伸ばすとなれる。'],
+psy2:['力が研ぎ澄まされた先','超能力者がさらに力を研ぎ澄ませた姿。'],
+psy3:['人の域を超えた存在','不思議な力を限界まで磨いた最終形態。'],
+mot1:['燃え尽きない熱を持つ者','やる気を高く保ち続けるとなれる。'],
+pet:['寄り添われて育つ、ある性質の子','心の距離がとても近いと、特定の性格の子だけがなれる。'],
+joker:['気まぐれな子が遊びを極めると…','遊びを重ねると、特定の性格の子だけがなれる。'],
+lazy:['怠けを貫いた者の末路','鍛えも学びもせず時が過ぎると、特定の性格の子だけがなれる。'],
+prophet:['見えざるものを知る者','賢さが目覚めると、特定の性格の子だけがなれる。'],
+gourmet:['食べることに目覚めた者','食事をたくさんとると、どの子でもなれる。'],
+bancho:['拳で語り合った者の姿','喧嘩を重ねるとなれる。'],
+idol:['皆に囲まれる者','たくさん話し、仲も深いとなれる。'],
+warrior:['力と知恵を兼ね備えた者','筋力と知識の両方を高めるとなれる。'],
+sporty:['体も心も弾んでいる者','体力とやる気の両方が高いとなれる。'],
+mage:['知恵と神秘が交わる者','知識と異能の両方を高めるとなれる。'],
+hermit:['丈夫な体と神秘が交わる者','体力と異能の両方を高めるとなれる。']
+};
+var tab="dex";
+var SPD={robo:'成長が安定した機械の子',angel:'争いを喫むやさしい子',kin:'成長が敇1.3倍で長生きする金色の子'};
+function node(k){
+ var f=!!M.forms[k];
+ var h='<li><div class="nd'+(f?'':' lock')+'"><div aria-hidden="true">'+fig(k,70,60,80,false)+'</div><span>'+(f?FN[k]:'？？？')+'</span></div>';
+ var ch=EV2[k];if(k==='base')ch=ch.concat(Object.keys(SPEV).filter(function(p){return M.met&&M.met[p]}).map(function(p){return SPEV[p][0]}));
+ if(f&&ch&&ch.length){h+='<ul>';ch.forEach(function(c){h+=node(c[0])});h+='</ul>'}
+ return h+'</li>';
+}
+function renderBook(){
+ var h="";
+ if(tab==="dex"){
+  var keys=Object.keys(FN).filter(function(k){return SPF.indexOf(k)<0||M.forms[k]}),n=0;
+  keys.forEach(function(k){if(M.forms[k])n++});
+  h='<p class="sub">発見 '+n+' / '+keys.length+'</p><div class="bks"><button id="treeBtn">系統樹を見る</button><button id="spBtn">特殊な子</button></div><div class="dex">';
+  keys.forEach(function(k){var f=!!M.forms[k];h+='<div class="card'+(f?'':' lock')+'"><div aria-hidden="true">'+fig(k,70,60,80,false)+'</div><div>'+(f?FN[k]:'？？？')+'</div><small class="hn">'+hintOf(k,f)+'</small></div>'});
+  h+='</div>';
+ }else if(tab==="tree"){
+  var tn=0,fk=fnKeys();fk.forEach(function(k){if(M.forms[k])tn++});
+  h='<p class="sub">発見 '+tn+' / '+fk.length+'・発見した形態の分岐先だけ見えます</p><ul class="tr">'+node('base')+'</ul>';
+ }else if(tab==="sp"){
+  var sk=Object.keys(SP),sn=0;
+  sk.forEach(function(k){if(M.met&&M.met[k])sn++});
+  h='<p class="sub">出会った子 '+sn+' / '+sk.length+'</p><div class="dex">';
+  sk.forEach(function(k){var m=!!(M.met&&M.met[k]);h+='<div class="card">'+(m?'<div aria-hidden="true">'+fig('base',70,60,80,false,k)+'</div><div>'+PERS[k].n+'</div><small class="hn">'+SPD[k]+'</small>':'<div class="q">？？？</div>')+'</div>'});
+  h+='</div>';
+ }else{
+  var c=0;
+  ACH.forEach(function(a){if(M.ach[a[0]])c++});
+  h='<p class="sub">解除 '+c+' / '+ACH.length+' ・施設Lv.'+lv()+'（次のLvまで'+(40-pts()%40)+'pt）</p>';
+  ACH.forEach(function(a){var u=!!M.ach[a[0]];h+='<div class="ach'+(u?'':' lock')+'"><span class="m">'+(u?'🏅':'🔒')+'</span><div><b>'+(a[5]&&!u?'？？？':a[1])+'</b><small>'+(a[5]&&!u?'条件は秘密…':a[2])+'</small></div></div>'});
+ }
+ $("bkTitle").textContent=tab==="dex"?"図鑑":tab==="tree"?"系統樹":tab==="sp"?"特殊な子":"実績";
+ $("bkSwitch").textContent=tab==="dex"?"実績へ切り替え":"図鑑へ切り替え";
+ $("bkBody").innerHTML=h;
+}
+function render(){
+ checkAch();
+ $("name").textContent=S.name;
+ $("age").textContent=S.age+"日目（Lv."+S.age+"） ・施設Lv."+lv();
+ var tb='';ST.men.forEach(function(m,i){tb+='<button data-i="'+i+'" class="'+(i===ST.i?'on':'')+'">'+(m.dead?'💀':'')+m.name+'</button>'});
+ if(ST.men.length<cap())tb+='<button data-add="1">＋迎える</button>';
+ $("tabs").innerHTML=tb;
+ $("fig").innerHTML=fig(S.form,S.rel,S.st.mot,S.hun,!!S.dead,S.pers);
+ $("form").textContent=S.dead?"（"+FN[S.form]+"）":FN[S.form];
+ $("stage").classList.toggle("dead",!!S.dead);
+ $("stage").setAttribute("data-p",S.pers);
+ $("bub").textContent=S.say||"";$("bub").style.visibility=S.say?"visible":"hidden";
+ var wl=$("will");
+ if(S.dead){wl.innerHTML='<b>この子の性格：'+PERS[S.pers].n+'</b><br>遺言：「'+WILL[S.pers][S.dead==="age"?0:1]+'」';wl.classList.remove("hide")}else wl.classList.add("hide");
+ var h="";
+ STATS.forEach(function(s){h+='<div class="bar"><span>'+s[1]+'</span><i style="--w:'+S.st[s[0]]+'%;--c:var('+s[2]+')"></i><b>'+S.st[s[0]]+dl(s[0])+'</b></div>'});
+ h+='<div class="bar"><span>関係</span><i style="--w:'+Math.max(0,S.rel)+'%;--c:var(--c-rel)"></i><b>'+Math.max(0,S.rel)+'</b></div>';
+ h+='<div class="bar"><span>空腹度</span><i style="--w:'+S.hun+'%;--c:var(--c-hun)"></i><b>'+S.hun+'</b></div>';
+ $("bars").innerHTML=h;
+ var a="";
+ Object.keys(ACT).forEach(function(k){a+='<button data-k="'+k+'">'+ACT[k].l+'<small>'+ACT[k].s+'</small></button>'});
+ a+='<button data-k="eat">ごはん<small>空腹度↑ 好みあり</small></button>';
+ $("acts").innerHTML=a;
+ $("acts").classList.toggle("hide",!!S.dead);
+ var f="";Object.keys(FOOD).forEach(function(k){f+='<button data-f="'+k+'">'+FOOD[k].l+'<small>'+FOOD[k].s+'</small></button>'});
+ f+='<button data-f="x">やめる<small>戻る</small></button>';
+ $("foods").innerHTML=f;$("foods").classList.add("hide");
+ $("again").classList.toggle("hide",!S.dead);
+ $("log").innerHTML=S.log.map(function(t){return "<li>"+t+"</li>"}).join("");
+}
+$("acts").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var k=b.getAttribute("data-k");if(k==="eat"){$("acts").classList.add("hide");$("foods").classList.remove("hide")}else act(k)});
+$("foods").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var f=b.getAttribute("data-f");if(f==="x")render();else eat(f)});
+$("again").addEventListener("click",newMan);
+$("bookBtn").addEventListener("click",function(){tab="dex";renderBook();document.querySelector("main").classList.add("bk");window.scrollTo(0,0)});
+$("bkBack").addEventListener("click",function(){document.querySelector("main").classList.remove("bk")});
+$("bkSwitch").addEventListener("click",function(){tab=tab==="dex"?"ach":"dex";renderBook()});
+function help(on){$("help").classList.toggle("on",on);if(on)$("hClose").focus();else $("helpBtn").focus()}
+$("helpBtn").addEventListener("click",function(){help(true)});
+$("hClose").addEventListener("click",function(){help(false)});
+$("help").addEventListener("click",function(e){if(e.target===this)help(false)});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")help(false)});
+$("bkBody").addEventListener("click",function(e){if(e.target.closest("#treeBtn")){tab="tree";renderBook();window.scrollTo(0,0)}else if(e.target.closest("#spBtn")){tab="sp";renderBook();window.scrollTo(0,0)}});
+var BT=null,BR=null,mmOn=false,mmSent={};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function cl(v,a,b){v=+v;if(!(v>=a))v=a;return v>b?b:v}
+function hf(k){return Object.prototype.hasOwnProperty.call(FN,k)}
+function hsh(s){var h=5381;for(var i=0;i<s.length;i++)h=((h*33)^s.charCodeAt(i))>>>0;return h.toString(36)+s.length}
+function mxHP(st,lv){return Math.round((60+st.hp*2)*(1+(lv||0)/100))}
+function stg(f){if(f==='base')return 1;if(f.indexOf('_')>0)return 1+(+f.split('_')[1]);var l=f.charAt(f.length-1);return (l>='1'&&l<='9')?1+(+l):2}
+var SGT={hp:'heal',str:'big',int:'mind',psy:'psy',mot:'fury',warrior:'big',sporty:'fury',mage:'psy',hermit:'heal',gourmet:'heal',bancho:'big',idol:'mind',pet:'heal',joker:'fury',lazy:'heal',prophet:'mind',robo:'mind',angel:'heal',kin:'psy',base:'big'};
+var SGN={big:'ぶちかまし',mind:'ひらめきアタック',psy:'サイコバースト',heal:'いやしの光',fury:'れんぞくコンボ'};
+function sgType(f){var k=f.split('_')[0],l=k.charAt(k.length-1);if(l>='1'&&l<='9')k=k.slice(0,-1);return SGT[k]||'big'}
+var PAS={hp:{red:.05,reg:.01},str:{atk:.06},int:{res:.1},psy:{atk:.04,res:.05},mot:{reg:.015,atk:.03},pet:{red:.04,reg:.015},joker:{atk:.03,res:.08},lazy:{red:.06,reg:.02},prophet:{red:.04,res:.06},gourmet:{reg:.02,atk:.03},bancho:{rfl:.05,atk:.03},idol:{res:.08,red:.03},warrior:{atk:.05,red:.03},sporty:{atk:.04,reg:.01},mage:{atk:.05,res:.05},hermit:{red:.04,reg:.015},robo:{red:.05,res:.1},angel:{reg:.02,res:.1},kin:{atk:.04,red:.03,reg:.01}};
+var CMOD={hp:{mot:1.3},str:{atk:1.15},int:{int:1.25},psy:{psy:1.2,pc:.1},mot:{mot:1.3,atk:1.05},pet:{mot:1.2},joker:{atk:1.05,fx:{atk:['pa',.3]}},lazy:{fx:{mot:['gd',1]}},prophet:{int:1.15,fx:{int:['wk',.8]}},gourmet:{mot:1.25},bancho:{atk:1.1,fx:{atk:['wk',.3]}},idol:{mot:1.1,fx:{int:['pa',.4]}},warrior:{atk:1.1,int:1.1},sporty:{atk:1.05,mot:1.15,fx:{mot:['gd',.8]}},mage:{psy:1.1,int:1.1,fx:{psy:['po',.6]}},hermit:{mot:1.15,fx:{int:['gd',1]}},robo:{atk:1.1,int:1.15},angel:{mot:1.3},kin:{atk:1.08,int:1.08,psy:1.08,mot:1.08}};
+// 専用技: [名前,ダメージ[基礎,ステ,係数]|0,回復|0,効果['対象:種類:確率'],反動率]  po毒 pa麻痺 wk弱体 gd=ガード
+var SPM={hp3:['ふくつの大地',0,[22,'hp',.5],['s:gd:1'],0],str3:['ごうけつ正拳',[28,'str',.7],0,[],0],int3:['しこうの檻',[18,'int',.5],0,['o:pa:.5','o:wk:.6'],0],psy3:['ざんしんの波動',[20,'psy',.9],0,['o:po:.5'],0],
+warrior_2:['一閃',[20,'str',.45],0,['o:wk:.4'],0],warrior_3:['無双の連斬',[26,'str',.55],0,['o:wk:.6','o:po:.3'],0],
+sporty_2:['ダッシュアタック',[16,'hp',.4],[8,'mot',.1],[],0],sporty_3:['レジェンドスマッシュ',[24,'hp',.45],0,['s:gd:1'],0],
+mage_2:['フレアランス',[16,'int',.45],0,['o:po:.6'],0],mage_3:['メテオカタストロフ',[26,'psy',.6],0,['o:pa:.4','o:po:.5'],.1],
+hermit_2:['せいじゃくの気',0,[18,'psy',.4],['s:gd:1'],0],hermit_3:['天地無用',[20,'psy',.5],[14,'hp',.2],['o:pa:.5'],0],
+gourmet_2:['フルコース',[12,'hp',.3],[16,'hp',.3],[],0],gourmet_3:['王のごちそう',[16,'hp',.4],[26,'hp',.35],[],0],
+bancho_2:['総長ラッシュ',[16,'str',.5],0,['o:wk:.5'],.05],bancho_3:['伝説のタイマン',[30,'str',.7],0,['o:wk:.7'],.12],
+idol_2:['スポットライト',[10,'int',.3],0,['o:pa:.6'],0],idol_3:['ファンの大歓声',[18,'int',.45],[12,'mot',.2],['o:pa:.5','o:wk:.5'],0],
+pet_2:['ぎゅーっ',[8,'mot',.2],[16,'mot',.25],['o:wk:.7'],0],pet_3:['無償の愛',0,[34,'hp',.4],['s:gd:1','o:wk:.8'],0],
+joker_2:['びっくり箱',[14,'mot',.4],0,['o:pa:.4'],0],joker_3:['笑いの渦',[22,'mot',.55],0,['o:pa:.5','o:wk:.5','o:po:.3'],0],
+lazy_2:['ごろ寝バリア',0,[14,'hp',.25],['s:gd:1'],0],lazy_3:['夢のかなたへ',[16,'psy',.4],[20,'hp',.3],['o:pa:.6','s:gd:1'],0],
+prophet_2:['未来視',[14,'int',.4],0,['o:wk:.6'],0],prophet_3:['運命のさだめ',[24,'int',.6],0,['o:wk:.6','o:pa:.4'],0],
+robo_2:['ビームキャノン',[22,'int',.5],0,[],0],robo_3:['神機オーバードライブ',[32,'int',.7],0,['o:pa:.4'],.1],
+angel_2:['やすらぎの羽',[8,'psy',.2],[26,'hp',.3],['s:gd:1'],0],angel_3:['熱天使の福音',[22,'mot',.5],[32,'mot',.3],['s:gd:1','o:wk:.7'],0],
+kin_2:['王の威光',[24,'str',.35],0,['o:wk:.5','o:pa:.3'],0],kin_3:['黄金のご裁き',[34,'psy',.5],[16,'hp',.2],['o:pa:.5','o:wk:.5','o:po:.5'],0]};
+var SN={po:'毒',pa:'麻痺',wk:'弱体',gd:'ガード'};
+function fam(f){var k=f.split('_')[0],l=k.charAt(k.length-1);if(l>='1'&&l<='9')k=k.slice(0,-1);return k}
+function pasOf(f){var u=PAS[fam(f)]||{},k=stg(f)-1,o={};['red','atk','reg','rfl','res'].forEach(function(x){o[x]=Math.min(x==='red'?0.5:1,(u[x]||0)*k)});return o}
+function pasTxt(f){var o=pasOf(f),a=[],q=function(n){return Math.round(n*100)+'%'};if(o.red)a.push('被ダメ-'+q(o.red));if(o.atk)a.push('与ダメ+'+q(o.atk));if(o.reg)a.push('毎ターンHP'+q(o.reg)+'回復');if(o.rfl)a.push('反撃'+q(o.rfl));if(o.res)a.push('状態異常耐性'+q(o.res));return a.length?'特性：'+a.join('／'):''}
+function stH(f){var a=[];if(f.ps&&f.ps.n>0)a.push('毒');if(f.pa>0)a.push('麻痺');if(f.wk>0)a.push('弱体');if(f.gd)a.push('ガード');return a.length?'<div><small>状態：'+a.join('・')+'</small></div>':''}
+function fxRoll(t,x,r,ch){var tg=x==='gd'?'s':'o';if(Math.random()<ch*(tg==='o'?1-pasOf(t.form).res:1))r.e.push([tg,x,(tg==='o'&&x==='po')?Math.max(5,Math.min(60,Math.round(t.max*0.08))):0])}
+function calc(c){
+ var m=BT.me,t=BT.op,st=m.st,p=m.pers,k=stg(m.form)-1,cm=CMOD[fam(m.form)]||{},pa=pasOf(m.form),pm=1+0.15*(stg(m.form)-1),r={d:0,h:0,t:'',e:[]};
+ var cx=function(n){return 1+((cm[n]||1)-1)*k/2};
+ if(p==='mendo'&&Math.random()<0.15){r.t='めんどくさがって動かない…';return r}
+ if(m.pa>0&&Math.random()<0.5){r.t='しびれて動けない！';return r}
+ var v=0.9+Math.random()*0.2;
+ if(p==='kibun')v=0.6+Math.random()*0.9;
+ else if(p==='doryoku')v=1+Math.min(6,BT.n/2)*0.02;
+ else if(p==='robo')v=1;
+ if(p==='kin')v*=1.1;
+ if(p==='sabishi'&&m.hp<m.max*0.5)v*=1.3;
+ if(m.wk>0)v*=0.6;
+ v*=1+pa.atk;
+ var base=0,fx=cm.fx&&cm.fx[c],sp=SPM[m.form],ef=null,sdf=0;
+ if(c==='atk'){base=(8+st.str*0.35)*cx('atk');if(p==='netsu')v*=1.15;r.t='たたかう！'}
+ else if(c==='int'){base=(6+st.int*0.3)*cx('int');if(p==='tensai')v*=1.3;if(p==='netsu')v*=0.85;r.rd=1;r.t='ひらめき！相手の動きを読んだ。'}
+ else if(c==='mot'){r.h=Math.round((5+st.mot*0.15)*(p==='angel'?1.4:1)*cx('mot'));r.kb=1;r.t='きあいをためた！'}
+ else if(c==='psy'){if(Math.random()<0.4+st.psy*0.005+(cm.pc||0)*k/2){base=(10+st.psy*0.6)*cx('psy');if(p==='ino')v*=1.3;r.t='いのう発動！'}else r.t='いのう…不発。'}
+ else if(c==='sg'){var ty=sgType(m.form);r.sg=1;r.t=FN[m.form]+'の'+SGN[ty]+'！';
+  if(ty==='big')base=18+st.str*0.5;else if(ty==='mind')base=14+st.int*0.5;else if(ty==='psy')base=12+st.psy*0.7;else if(ty==='fury')base=(7+st.str*0.2)*2;
+  else r.h=Math.round((20+st.hp*0.3)*(p==='angel'?1.4:1))}
+ else if(c==='sp'&&sp){r.sp=1;r.t=FN[m.form]+'の'+sp[0]+'！';if(sp[1])base=sp[1][0]+st[sp[1][1]]*sp[1][2];if(sp[2])r.h=sp[2][0]+st[sp[2][1]]*sp[2][2];ef=sp[3];sdf=sp[4]||0}
+ if(base>0)r.d=Math.round(base*v*pm*(m.buf?1.5:1)*(m.rd?0.7:1)*(1+m.lv/100)*(1-pasOf(t.form).red)*(t.gd?0.5:1));
+ r.d=cl(r.d,0,200);r.h=Math.round(r.h*(1+m.lv/100));
+ if(r.d>0&&Math.random()<(t.dg||0)){r.d=0;r.rd=0;r.dg=1;r.t+='…しかし避けられた！'}
+ if(r.d>0)r.sd=Math.round(r.d*(pasOf(t.form).rfl+sdf));
+ if(ef)ef.forEach(function(x){var a=x.split(':');fxRoll(t,a[1],r,+a[2])});
+ else if(fx&&(r.d>0||c==='mot'))fxRoll(t,fx[0],r,Math.min(1,fx[1]*k/2));
+ if(r.dg)r.e=r.e.filter(function(x){return x[0]==='s'});
+ return r;
+}
+function app(r,a,t){
+ if(!r.sg&&a.cd>0)a.cd--;
+ if(!r.sp&&a.cd2>0)a.cd2--;
+ a.hp=Math.min(a.max,a.hp+r.h);t.hp=Math.max(0,t.hp-r.d);
+ if(r.sd)a.hp=Math.max(0,a.hp-r.sd);
+ if(r.d>0&&t.gd)t.gd=false;
+ if(r.kb)a.buf=true;else if(r.d>0)a.buf=false;
+ if(r.d>0)a.rd=false;
+ if(r.rd)t.rd=true;
+ if(r.sg)a.cd=3;
+ if(r.sp)a.cd2=4;
+ (r.e||[]).forEach(function(x){var u=x[0]==='s'?a:t;if(x[1]==='po')u.ps={n:3,d:x[2]};else if(x[1]==='pa')u.pa=3;else if(x[1]==='wk')u.wk=3;else if(x[1]==='gd')u.gd=true});
+ if(a.wk>0)a.wk--;
+ if(a.pa>0)a.pa--;
+ if(a.ps&&a.ps.n>0){a.hp=Math.max(0,a.hp-a.ps.d);a.ps.n--}
+ var rg=pasOf(a.form).reg;if(rg&&a.hp>0)a.hp=Math.min(a.max,a.hp+Math.round(a.max*rg));
+}
+function cleanR(r){r=r||{};return {d:cl(r.d,0,200),h:cl(r.h,0,120),t:String(r.t||'').slice(0,60),rd:!!r.rd,kb:!!r.kb,sg:!!r.sg,sp:!!r.sp,dg:!!r.dg,sd:cl(r.sd,0,100),e:(Array.isArray(r.e)?r.e:[]).slice(0,4).map(function(x){x=x||[];return [x[0]==='s'?'s':'o',SN[x[1]]?x[1]:null,cl(x[2],0,60)]}).filter(function(x){return x[1]})}}
+function lg(w,r){return w+'：'+r.t+(r.d?'（'+r.d+'ダメージ）':'')+(r.h?'（HP+'+r.h+'）':'')+(r.sd?'（反動'+r.sd+'）':'')+((r.e&&r.e.length)?'（'+r.e.map(function(x){return SN[x[1]]}).join('・')+'）':'')}
+function rec(win,i){var b=M.bt=M.bt||{w:0,l:0,cs:0,best:0,h:[]};if(win){b.w++;b.cs++;if(b.cs>b.best)b.best=b.cs}else{b.l++;b.cs=0}b.h.unshift({r:win?1:0,m:i.m,f:i.f,l:i.l});b.h=b.h.slice(0,10)}
+function finish(){if(!BT||BT.fin)return;BT.fin=1;var i={m:BT.again?'r':'d',f:BT.op.form,l:BT.op.lv};S.bt=null;rec(BT.win,i);if(!BT.win)die('battle');save();render()}
+function recHtml(){var b=M.bt||{w:0,l:0,cs:0,best:0,h:[]},t=b.w+b.l,rt=t?Math.round(b.w/t*100):0;
+ var h='<b>対戦成績</b><br>'+b.w+'勝 '+b.l+'敗（勝率 '+rt+'%）<br>連勝 現在'+b.cs+' ・ 最高'+b.best;
+ if(b.h.length)h+='<br><small>直近の対戦</small><ul class="log">'+b.h.map(function(x){return '<li>'+(x.r?'勝ち':'負け')+' ・'+(x.m==='r'?'ランダム':'決闘')+' ・'+(hf(x.f)?FN[x.f]:'？')+' Lv.'+(+x.l||0)+'</li>'}).join('')+'</ul>';
+ return h}
+function chk(){if(BT.me.hp<=0||BT.op.hp<=0){BT.over=true;BT.win=BT.op.hp<=0;clearInterval(BT.iv);finish()}}
+var DGP={tensai:.05,kibun:.08,ino:.04,sabishi:.02,doryoku:0,netsu:-.03,mendo:-.03};
+function dgOf(st,p){return Math.max(0,Math.min(.3,.05+st.mot*.0015+(DGP[p]||0)))}
+var SD={atk:'筋力で攻撃',int:'知識で攻撃し、相手の次の攻撃を弱める',mot:'HPを少し回復し、次の攻撃が1.5倍',psy:'異能で大ダメージ（失敗することも）'};
+var SGD={big:'筋力で強力な一撃',mind:'知識で強力な一撃',psy:'異能で大技',heal:'HPを大きく回復',fury:'2連続の攻撃'};
+var SK={hp:'体力',str:'筋力',int:'知識',mot:'やる気',psy:'異能'};
+var FXD={po:'毒',pa:'麻痺',wk:'弱体',gd:'自分にガード'};
+function dsc(c,m){if(SD[c])return SD[c];if(c==='sg'){var ty=sgType(m.form);return SGD[ty]+(ty==='heal'?'':'（3ターン目から）')+'・冷却3'}var q=SPM[m.form],a=[];if(q[1])a.push(SK[q[1][1]]+'で攻撃');if(q[2])a.push('HP回復');q[3].forEach(function(x){var z=x.split(':');a.push(FXD[z[1]]+(z[1]==='gd'?'':'('+Math.round(z[2]*100)+'%)'))});if(q[4])a.push('反動');return a.join('・')+(q[1]?'（3ターン目から）':'')+'・冷却4'}
+function lockT(c){var m=BT.me;return !!((c==='sg'&&sgType(m.form)!=='heal'||c==='sp'&&SPM[m.form]&&SPM[m.form][1])&&(BT.mn||0)<2)}
+function doMove(c){
+ if(!BT||!BT.started||BT.over||BT.turn!=='me'||(c==='sg'&&BT.me.cd>0)||(c==='sp'&&(!SPM[BT.me.form]||BT.me.cd2>0))||c===BT.last||lockT(c))return;
+ var r=calc(c);BT.last=c;BT.mn=(BT.mn||0)+1;app(r,BT.me,BT.op);BT.n++;BT.turn='op';BT.log.unshift(lg('あなた',r));
+ BT.room.emit('mv',{g:BT.g,n:BT.n,r:{d:r.d,h:r.h,t:r.t,rd:r.rd?1:0,kb:r.kb?1:0,sg:r.sg?1:0,sp:r.sp?1:0,dg:r.dg?1:0,sd:r.sd||0,e:r.e||[]}}).catch(function(){});
+ chk();bRender();
+}
+function hello(){if(BT)BT.room.emit('hello',{g:BT.g,nm:BT.me.nm,fm:BT.me.form,mx:BT.me.max,lv:BT.me.lv,rr:BT.rr,got:BT.got,dg:BT.me.dg}).catch(function(){})}
+function onHello(m){
+ var d=m.data;if(m.sameTab||!BT||!d||d.g!==BT.g||BT.started)return;
+ if(BT.opp&&m.peer!==BT.opp)return;
+ BT.opp=m.peer;BT.got=true;
+ var mx=cl(d.mx,60,600);
+ BT.op={hp:mx,max:mx,lv:cl(d.lv,0,999),form:hf(d.fm)?d.fm:'base',nm:String(d.nm||'あいて').slice(0,12),buf:false,rd:false,cd:0,dg:cl(d.dg,0,0.3)};
+ if(d.got){BT.started=true;clearTimeout(BT.to);S.bt={m:BT.again?'r':'d',f:BT.op.form,l:BT.op.lv};save();BT.turn=BT.rr>+d.rr?'me':'op';BT.log.unshift('バトル開始！'+(BT.turn==='me'?'あなたの先攻。':'相手の先攻。'))}
+ bRender();
+}
+function onMv(m){
+ var d=m.data;if(m.sameTab||!BT||!BT.started||BT.over||m.peer!==BT.opp||!d||d.g!==BT.g||BT.turn!=='op'||d.n!==BT.n+1)return;
+ var r=cleanR(d.r);app(r,BT.op,BT.me);BT.n++;BT.turn='me';BT.log.unshift(lg('あいて',r));chk();bRender();
+}
+function winBy(t){if(BT&&BT.started&&!BT.over){BT.over=true;BT.win=true;BT.log.unshift(t);clearInterval(BT.iv);finish();bRender()}}
+function startBattle(g,room,rnd){
+ var st=Object.assign({},S.st),lv=S.age,mx=mxHP(st,lv);
+ BT={g:g,room:room,opp:null,op:null,started:false,over:false,win:false,n:0,turn:null,log:[],rr:Math.random(),got:false,again:!!rnd,me:{hp:mx,max:mx,lv:lv,st:st,form:S.form,pers:S.pers,nm:S.name,buf:false,rd:false,cd:0,dg:dgOf(st,S.pers)}};
+ BR.presence({w:null});mmOn=false;$("btRand").textContent='ランダムバトル';
+ room.on('hello',onHello);room.on('mv',onMv);
+ room.on('bye',function(m){if(!m.sameTab&&BT&&m.peer===BT.opp)winBy('相手が降参した。あなたの勝ち！')});
+ room.onPeers(function(c){if(BT&&BT.room===room&&BT.opp&&c.left.some(function(p){return p.peer===BT.opp}))winBy('相手が退出した。あなたの勝ち！')});
+ BT.iv=setInterval(hello,1500);hello();
+ BT.to=setTimeout(function(){if(BT&&BT.room===room&&!BT.started){var again=BT.again;leaveBattle();if(again)btRandom()}},25000);
+ bRender();
+}
+async function enter(g,rnd){
+ if(BT)return;
+ try{var nr=await BR.join(g);if(BT){nr.leave();return}startBattle(g,nr,rnd)}
+ catch(e){$("btMsg").textContent='部屋に入れませんでした。もう一度試してください。'}
+}
+function leaveBattle(){
+ if(!BT)return;
+ if(BT.started&&!BT.over){BT.over=true;BT.win=false;BT.log.unshift('降参した。');finish();$("btMsg").textContent='降参して、棒人間は旅立ってしまった…'}
+ clearInterval(BT.iv);clearTimeout(BT.to);
+ var r=BT.room,g=BT.g;BT=null;
+ r.emit('bye',{g:g}).catch(function(){}).then(function(){r.leave().catch(function(){})});
+ bRender();
+}
+// Firebase Realtime Database を使ったオンライン対戦通信層
+var firebaseConfig={
+ apiKey:"AIzaSyBEM3eSDtXtRXX6-ocqu9SvPbWfoB7zBro",
+ authDomain:"bou-fuman.firebaseapp.com",
+ databaseURL:"https://bou-fuman-default-rtdb.firebaseio.com",
+ projectId:"bou-fuman",
+ storageBucket:"bou-fuman.firebasestorage.app",
+ messagingSenderId:"1092209196722",
+ appId:"1:1092209196722:web:6aa63c1701fac2108493ab"
+};
+function createFirebaseRoomClient(){
+ var app=firebase.apps.length?firebase.app():firebase.initializeApp(firebaseConfig);
+ var auth=firebase.auth(),db=firebase.database(),uid=null;
+ var clientId=Math.random().toString(36).slice(2)+Date.now().toString(36);
+ var peerId=null,presRef=null,globalHandlers={},peerHandlers=[],currentPresence={w:null};
+ var peersCache=[];
+ function snapVal(s){return s.exists()?s.val():null}
+ function eventObj(s){var v=s.val()||{};return {peer:v.peer,data:v.data||{},sameTab:false}}
+ function onGlobal(name,fn){
+  var ref=db.ref('globalEvents/'+name).limitToLast(100);
+  var cb=function(s){var v=s.val();if(!v||v.to!==peerId)return;fn({peer:v.peer,data:v.data||{},sameTab:false})};
+  ref.on('child_added',cb);(globalHandlers[name]||(globalHandlers[name]=[])).push({ref:ref,cb:cb});
+ }
+ function listPeers(){
+  return db.ref('presence').once('value').then(function(s){var out=[];s.forEach(function(c){var v=c.val()||{};if(v.peer!==peerId)out.push({peer:v.peer,kind:v.kind||'viewer',presence:v.presence||{},isMe:false,sameTab:false})});out.push({peer:peerId,kind:'viewer',presence:currentPresence,isMe:true,sameTab:true});return out})
+ }
+ var client={
+  async ready(){
+   if(!firebaseConfig.apiKey||firebaseConfig.apiKey.indexOf('YOUR_')===0)throw new Error('Firebase設定が未入力です');
+   var cred=await auth.signInAnonymously();uid=cred.user.uid;peerId=uid+'_'+clientId;
+   presRef=db.ref('presence/'+peerId);
+   await presRef.set({peer:peerId,kind:'viewer',presence:currentPresence,at:firebase.database.ServerValue.TIMESTAMP});
+   presRef.onDisconnect().remove();
+   db.ref('presence').on('value',async function(){var now=await listPeers();var old=peersCache;peersCache=now;peerHandlers.forEach(function(fn){var ids=now.map(function(x){return x.peer});var left=old.filter(function(x){return ids.indexOf(x.peer)<0});fn({left:left})})});
+   onGlobal('inv',function(m){client.globalInvHandlers.forEach(function(fn){fn(m)})});
+  },
+  globalInvHandlers:[],
+  on(name,fn){if(name==='inv')this.globalInvHandlers.push(fn)},
+  async emit(name,data){
+   if(name==='inv')return db.ref('globalEvents/inv').push({to:data.to,peer:peerId,data:data,at:firebase.database.ServerValue.TIMESTAMP});
+   throw new Error('未知のグローバルイベント');
+  },
+  presence(obj){currentPresence=obj||{};if(presRef)presRef.update({presence:currentPresence,at:firebase.database.ServerValue.TIMESTAMP})},
+  peers(){return peersCache.length?peersCache:[{peer:peerId,kind:'viewer',presence:currentPresence,isMe:true,sameTab:true}]},
+  onPeers(fn){peerHandlers.push(fn);listPeers().then(function(v){peersCache=v;fn({left:[]})})},
+  async join(roomId){
+   var base=db.ref('rooms/'+roomId),member=base.child('members/'+peerId),events=base.child('events');
+   var session='';
+   await base.transaction(function(cur){cur=cur||{};cur.members=cur.members||{};if(Object.keys(cur.members).length===0)cur.session=Math.random().toString(36).slice(2)+Date.now().toString(36);return cur});
+   session=(await base.child('session').once('value')).val();
+   await member.set({peer:peerId,session:session,at:firebase.database.ServerValue.TIMESTAMP});member.onDisconnect().remove();
+   var handlers={},peerFns=[],seen={};
+   function listen(name,fn){var ref=events.orderByChild('name').equalTo(name);var cb=function(s){var v=s.val();if(!v||v.session!==session||v.peer===peerId||seen[s.key])return;seen[s.key]=1;fn({peer:v.peer,data:v.data||{},sameTab:false})};ref.on('child_added',cb);(handlers[name]||(handlers[name]=[])).push({ref:ref,cb:cb})}
+   var room={
+    on:listen,
+    emit:function(name,data){return events.push({name:name,peer:peerId,session:session,data:data,at:firebase.database.ServerValue.TIMESTAMP})},
+    onPeers:function(fn){peerFns.push(fn);var ref=base.child('members');var prev={};ref.on('value',function(s){var cur={};s.forEach(function(c){cur[c.key]=c.val()});var left=Object.keys(prev).filter(function(k){return !cur[k]}).map(function(k){return {peer:k}});prev=cur;if(left.length)fn({left:left})})},
+    leave:async function(){Object.keys(handlers).forEach(function(k){handlers[k].forEach(function(x){x.ref.off('child_added',x.cb)})});await member.remove()}
+   };
+   return room;
+  }
+ };
+ return client;
+}
+async function initRoom(){
+ if(BR)return true;
+ try{
+  if(!window.firebase){throw new Error('Firebase SDKを読み込めません。通信環境を確認してください。')}
+  var r=createFirebaseRoomClient();await r.ready();BR=r;
+  r.on('inv',function(m){var d=m.data;if(!mmOn||BT||!d)return;var me=r.peers().filter(function(p){return p.isMe&&p.sameTab})[0];if(me&&d.to&&d.to===me.peer&&typeof d.g==='string'&&d.g.length<24&&/^r[a-z0-9]+$/.test(d.g))enter(d.g,true)});
+  r.onPeers(function(){mmCheck()});
+  return true;
+ }catch(e){console.error('オンライン対戦の初期化に失敗:',e);$("btMsg").textContent='オンライン接続に失敗しました。Firebase設定・匿名認証・Realtime Databaseルールを確認してください。';return false}
+}
+function mmCheck(){
+ if(!BR||!mmOn||BT)return;
+ var ps=BR.peers().filter(function(p){return p.kind==='viewer'&&p.presence&&p.presence.w}).sort(function(a,b){return a.peer<b.peer?-1:1});
+ $("btMsg").textContent='待機中のほかのプレイヤー：'+ps.filter(function(p){return !(p.isMe&&p.sameTab)}).length+'人';
+ var i=ps.findIndex(function(p){return p.isMe&&p.sameTab});
+ if(i>=0&&i%2===0&&ps[i+1]&&!mmSent[ps[i+1].peer]){mmSent[ps[i+1].peer]=1;var g='r'+Math.random().toString(36).slice(2,10);BR.emit('inv',{to:ps[i+1].peer,g:g}).catch(function(){});enter(g,true)}
+}
+async function btRandom(){
+ if(!(await initRoom()))return;
+ if(mmOn){mmOn=false;BR.presence({w:null});$("btMsg").textContent='';$("btRand").textContent='ランダムバトル';return}
+ mmOn=true;mmSent={};$("btRand").textContent='さがし中…（もう一度押すと中止）';$("btMsg").textContent='ほかのプレイヤーがランダムバトルを押すと始まります。';
+ BR.presence({w:Date.now()});mmCheck();
+}
+async function btDuel(){
+ var pw=$("btPw").value.trim();
+ if(!pw){$("btMsg").textContent='合言葉を入力してください。';return}
+ if(!(await initRoom()))return;
+ if(mmOn){mmOn=false;BR.presence({w:null});$("btRand").textContent='ランダムバトル'}
+ enter('d'+hsh(pw),false);
+}
+function pc(f){return Math.max(0,Math.round(f.hp/f.max*100))}
+function bRender(){
+ var f=$("btField"),lb=$("btLobby");
+ if(!BT){f.classList.add("hide");lb.classList.remove("hide");$("btRec").innerHTML=recHtml();return}
+ lb.classList.add("hide");f.classList.remove("hide");
+ var o=BT.op,m=BT.me;
+ $("btOp").innerHTML=o?'<div aria-hidden="true">'+fig(o.form,70,60,80,false)+'</div><div>'+esc(o.nm)+' Lv.'+o.lv+'（'+FN[o.form]+'）</div><div class="hp"><i style="--w:'+pc(o)+'%"></i></div><div>HP '+o.hp+' / '+o.max+'</div>'+stH(o):'<p class="sub">相手を待っています…（同じ合言葉の相手が来ると始まります）</p>';
+ $("btYou").innerHTML='<div aria-hidden="true">'+fig(m.form,70,60,80,false,m.pers)+'</div><div>'+esc(m.nm)+' Lv.'+m.lv+'（'+FN[m.form]+'）</div><div class="hp"><i style="--w:'+pc(m)+'%"></i></div><div>HP '+m.hp+' / '+m.max+'</div>'+stH(m)+'<div><small>'+pasTxt(m.form)+'</small></div>';
+ $("btLog").innerHTML=BT.log.slice(0,6).map(function(t){return '<li>'+esc(t)+'</li>'}).join('');
+ var st=$("btSt"),cm=$("btCmd");
+ if(!BT.started){st.textContent=BT.opp?'つなぎ中…':'相手を待っています…';cm.innerHTML=''}
+ else if(BT.over){st.textContent=BT.win?'あなたの勝ち！':'あなたの負け…';cm.innerHTML=''}
+ else{st.textContent=BT.turn==='me'?'あなたの番です。':'相手の番です…';
+  var h='';[['atk','たたかう','筋力'],['int','ひらめき','知識'],['mot','きあい','やる気'],['psy','いのう','異能'],['sg',FN[m.form]+'の技','得意技']].concat(SPM[m.form]?[['sp',SPM[m.form][0],'専用技']]:[]).forEach(function(x){var cd=(x[0]==='sg'&&m.cd>0)||(x[0]==='sp'&&m.cd2>0),lk=lockT(x[0]),rp=x[0]===BT.last,dis=BT.turn!=='me'||cd||lk||rp;h+='<button data-c="'+x[0]+'"'+(dis?' disabled':'')+'>'+x[1]+'<small>'+(cd?'あと'+(x[0]==='sp'?m.cd2:m.cd)+'回':lk?'3ターン目から':rp?'連続不可':x[2])+'</small><em>'+dsc(x[0],m)+'</em></button>'});cm.innerHTML=h}
+ $("btQuit").textContent=BT.over?'戻る':'降参して戻る';
+}
+$("btlBtn").addEventListener("click",function(){
+ $("btMe").textContent=S.dead?'亡くなった棒人間は戦えません。':S.name+'（'+FN[S.form]+'）Lv.'+S.age+'で戦います。';
+ $("btRand").disabled=$("btDuel").disabled=!!S.dead;
+ document.querySelector("main").classList.add("bt");window.scrollTo(0,0);bRender();
+});
+$("btBack").addEventListener("click",function(){leaveBattle();if(BR&&mmOn){mmOn=false;BR.presence({w:null});$("btRand").textContent='ランダムバトル'}document.querySelector("main").classList.remove("bt")});
+$("btQuit").addEventListener("click",function(){leaveBattle()});
+$("btRand").addEventListener("click",btRandom);
+$("btDuel").addEventListener("click",btDuel);
+$("btCmd").addEventListener("click",function(e){var b=e.target.closest("button");if(b&&!b.disabled)doMove(b.getAttribute("data-c"))});
+function setOpen(on){$("set").classList.toggle("on",on);$("rsConf").classList.add("hide");$("rsBtn").classList.remove("hide");if(on)$("sClose").focus();else $("setBtn").focus()}
+$("setBtn").addEventListener("click",function(){setOpen(true)});
+$("sClose").addEventListener("click",function(){setOpen(false)});
+$("set").addEventListener("click",function(e){if(e.target===this)setOpen(false)});
+$("rsBtn").addEventListener("click",function(){$("rsBtn").classList.add("hide");$("rsConf").classList.remove("hide")});
+$("rsNo").addEventListener("click",function(){setOpen(true)});
+$("rsYes").addEventListener("click",function(){try{localStorage.removeItem(KEY);localStorage.removeItem(KEY2);localStorage.removeItem(MK)}catch(e){}M=loadM();ST={men:[],i:0};S=null;setOpen(false);document.querySelector("main").classList.remove("bk");newMan()});
+$("tabs").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;if(b.getAttribute("data-add")){ST.men.push(null);ST.i=ST.men.length-1;newMan();return}var i=+b.getAttribute("data-i");ST.i=i;S=ST.men[i];save();render()});
+M=loadM();
+ST=loadST();
+S=ST.men[ST.i]||null;
+if(S&&S.hun===undefined){var fk0=Object.keys(FOOD),l0=rnd(0,fk0.length-1);S.hun=70;S.starve=0;S.like=fk0[l0];S.hate=fk0[(l0+rnd(1,fk0.length-1))%fk0.length]}
+if(!S){newMan()}else{ST.men.forEach(function(m){S=m;neglect();if(m.bt&&!m.dead){rec(false,m.bt);m.bt=null;die('battle')}});S=ST.men[ST.i];save();render()}
+</script>
+</body>
+</html>
